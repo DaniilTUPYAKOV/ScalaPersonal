@@ -1,0 +1,31 @@
+image: sbtscala/scala-sbt:eclipse-temurin-jammy-21.0.2_13_1.9.9_3.4.0
+
+stages:
+  - build
+  - test
+
+variables:
+  SBT_OPTS: "-Xmx512m"
+
+before_script:
+  - sbt clean update
+
+build:
+  stage: build
+  script:
+    - sbt "scalafmtSbtCheck; scalafmtCheckAll; compile"
+
+test:
+  stage: test
+  script:
+    - sbt "coverage; test; coverageReport; coverageAggregate;"
+  artifacts:
+    paths:
+      - "**/target/*/scoverage-report"
+    reports:
+      junit:
+        - "**/test-reports/TEST*.xml"
+      coverage_report:
+        coverage_format: cobertura
+        path: "**/coverage-report/cobertura.xml"
+  coverage: '/All done\. Coverage was (?:stmt=)?\[(\d+.\d+\%)\]/'

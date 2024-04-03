@@ -1,0 +1,4 @@
+-J-XX:+UseG1GC
+-J-Xmx512m
+-J-XX:ReservedCodeCacheSize=128m
+-Duser.timezone=Europe/Moscow
