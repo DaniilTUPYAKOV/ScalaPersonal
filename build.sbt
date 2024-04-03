@@ -44,7 +44,9 @@ lazy val task1 = (project in file("task1"))
     name := "task1",
     libraryDependencies ++= List(
       catsCore,
-      scalaTest % Test
+      scalaTest % Test,
+      disciplineTest % Test,
+      catsLaw % Test
     ),
     coverageEnabled                 := true,
     coverageFailOnMinimum           := true,
