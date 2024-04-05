@@ -1,7 +1,6 @@
 package types
 
 import cats.Monad
-import cats.implicits.{catsSyntaxApplicativeId, toFlatMapOps}
 
 import scala.annotation.tailrec
 
@@ -11,7 +10,6 @@ sealed trait MyList[+T] {
 
 case object MyNil extends MyList[Nothing] {
   override def add[A >: Nothing](value: A): MyList[A] = MyListBody(value, MyNil)
-
 }
 
 case class MyListBody[+T](head: T, tail: MyList[T]) extends MyList[T] {
@@ -20,7 +18,10 @@ case class MyListBody[+T](head: T, tail: MyList[T]) extends MyList[T] {
 
 object MyList {
 
-  def empty: MyList[Nothing] = MyNil
+  def apply[A](args: A*): MyList[A] =
+    args.reverse.foldLeft(MyList.empty[A])((z, x) => MyListBody(x, z))
+
+  def empty[A]: MyList[A] = MyNil
 
   def single[A](value: A): MyList[A] = MyListBody(value, MyNil)
 

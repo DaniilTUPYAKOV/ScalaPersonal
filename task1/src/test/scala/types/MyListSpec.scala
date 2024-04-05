@@ -26,6 +26,12 @@ class MyListSpec extends AnyFlatSpec with Matchers {
     MyList.empty.add(MyList.empty.add(1)) shouldBe MyListBody(MyListBody(1, MyNil), MyNil)
   }
 
+  it should "created by sequence" in {
+    MyList(1, 2, 3) shouldBe MyList.empty.add(3).add(2).add(1)
+    MyList("one", "two", "three") shouldBe MyList.empty.add("three").add("two").add("one")
+    MyList(1, "two", MyList("three")) shouldBe MyList.empty.add(MyList("three")).add("two").add(1)
+  }
+
   "Monad for MyList" should "pure method works" in {
     1.pure[MyList] shouldBe MyList.empty.add(1)
   }
