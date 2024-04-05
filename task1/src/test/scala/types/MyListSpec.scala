@@ -32,6 +32,28 @@ class MyListSpec extends AnyFlatSpec with Matchers {
     MyList(1, "two", MyList("three")) shouldBe MyList.empty.add(MyList("three")).add("two").add(1)
   }
 
+  it should "headOption return None for Empty" in {
+    MyList.empty.headOption shouldBe None
+  }
+
+  it should "headOption return Some(value) for non - Empty" in {
+    MyList(1).headOption shouldBe Some(1)
+    MyList("hello!").headOption shouldBe Some("hello!")
+    MyList(1, 2, 3).headOption shouldBe Some(1)
+  }
+
+  it should "elementOption return Some(value) for correct case" in {
+    MyList(1, 2, 3).elementOption(0) shouldBe Some(1)
+    MyList(1, 2, 3).elementOption(1) shouldBe Some(2)
+    MyList(1, 2, 3).elementOption(2) shouldBe Some(3)
+  }
+
+  it should "elementOption return None when index out of bounds" in {
+    MyList(1, 2, 3).elementOption(-1) shouldBe None
+    MyList(1, 2, 3).elementOption(4) shouldBe None
+    MyList(1, 2, 3).elementOption(2001) shouldBe None
+  }
+
   "Monad for MyList" should "pure method works" in {
     1.pure[MyList] shouldBe MyList.empty.add(1)
   }
@@ -52,12 +74,17 @@ class MyListSpec extends AnyFlatSpec with Matchers {
     val testIntList: MyList[Int] = 1.pure[MyList].add(2)
 
     testIntList
-      .flatMap(x => (x * 2).pure[MyList].add(x * 3).add(x * 4)) shouldBe MyList
-      .empty.add(2).add(3).add(4).add(4).add(6).add(8)
+      .flatMap(x => (x * 2).pure[MyList].add(x * 3).add(x * 4)) shouldBe MyList.empty
+      .add(2)
+      .add(3)
+      .add(4)
+      .add(4)
+      .add(6)
+      .add(8)
   }
 
   it should "be left identity" in {
-    def mul(num: Int): MyList[Int] = (num * 2).pure[MyList].add(num * 3).add(num * 4)
+    def mul(num: Int): MyList[Int]  = (num * 2).pure[MyList].add(num * 3).add(num * 4)
     def plus(num: Int): MyList[Int] = (num + 2).pure[MyList].add(num + 3).add(num + 4)
 
     1.pure[MyList].flatMap(x => (x * 2).pure[MyList]) shouldBe 2.pure[MyList]
@@ -78,7 +105,7 @@ class MyListSpec extends AnyFlatSpec with Matchers {
   it should "be associativity" in {
     def f(num: Int): MyList[Int] = (num * 2).pure[MyList].add(num * 3).add(num * 4)
     def g(num: Int): MyList[Int] = (num + 2).pure[MyList].add(num + 3).add(num + 4)
-    val testList: MyList[Int] = 1.pure[MyList].add(2).add(3)
+    val testList: MyList[Int]    = 1.pure[MyList].add(2).add(3)
 
     testList.flatMap(f).flatMap(g) shouldBe testList.flatMap(x => f(x).flatMap(g))
   }
