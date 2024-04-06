@@ -11,6 +11,10 @@ sealed trait MyList[+T] {
 
   def elementOption(position: Int): Option[T]
 
+  def reverse: MyList[T]
+
+  def mySelf: MyList[T]
+
 }
 
 case object MyNil extends MyList[Nothing] {
@@ -20,6 +24,9 @@ case object MyNil extends MyList[Nothing] {
 
   override def headOption: Option[Nothing] = None
 
+  override def reverse: MyList[Nothing] = MyNil
+
+  override def mySelf: MyList[Nothing] = MyNil
 }
 
 case class MyListBody[+T](head: T, tail: MyList[T]) extends MyList[T] {
@@ -27,6 +34,8 @@ case class MyListBody[+T](head: T, tail: MyList[T]) extends MyList[T] {
   override def add[A >: T](value: A): MyList[A] = MyListBody(value, MyListBody(head, tail))
 
   override def headOption: Option[T] = Some(head)
+
+  override def mySelf: MyList[T] = MyListBody(head, tail)
 
   final override def elementOption(position: Int): Option[T] = {
     @tailrec
@@ -42,15 +51,8 @@ case class MyListBody[+T](head: T, tail: MyList[T]) extends MyList[T] {
       }
     }
 
-    loop(MyListBody(head, tail), position)
+    loop(mySelf, position)
   }
-
-  @tailrec
-  private def toList[T](myList: MyList[T], acc: List[T]): List[T] =
-    myList match {
-      case MyNil                  => acc
-      case MyListBody(head, tail) => toList(tail, head :: acc)
-    }
 
   @tailrec
   private def compare[T](list1: MyList[T], list2: MyList[T]): Boolean =
@@ -66,10 +68,20 @@ case class MyListBody[+T](head: T, tail: MyList[T]) extends MyList[T] {
 
   override def equals(obj: Any): Boolean =
     obj match {
-      case that: MyListBody[T] => compare(MyListBody(head, tail), that)
+      case that: MyListBody[T] => compare(mySelf, that)
       case _                   => false
     }
 
+  override def reverse: MyList[T] = {
+    @tailrec
+    def loop(remaining: MyList[T], acc: MyList[T]): MyList[T] = {
+      remaining match {
+        case MyNil => acc
+        case MyListBody(head, tail) => loop(tail, MyListBody(head, acc))
+      }
+    }
+    loop(mySelf, MyNil)
+  }
 }
 
 object MyList {
@@ -81,13 +93,6 @@ object MyList {
 
   def single[A](value: A): MyList[A] = MyListBody(value, MyNil)
 
-  @tailrec
-  private def reverse[A](list: MyList[A], acc: MyList[A]): MyList[A] =
-    list match {
-      case MyNil                  => acc
-      case MyListBody(head, tail) => reverse(tail, MyListBody(head, acc))
-    }
-
   private def concat[A](left: MyList[A], right: MyList[A]): MyList[A] = {
 
     @tailrec
@@ -97,7 +102,7 @@ object MyList {
         case MyListBody(head, tail) => loop(tail, MyListBody(head, acc))
       }
 
-    loop(reverse(left, MyNil), right)
+    loop(left.reverse, right)
   }
 
   implicit val myListMonad: Monad[MyList] =
@@ -139,7 +144,7 @@ object MyList {
               }
           }
 
-        reverse(loop(pure(f(a)), empty), MyNil)
+        loop(pure(f(a)), empty).reverse
       }
     }
 }

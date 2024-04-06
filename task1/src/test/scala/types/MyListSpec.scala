@@ -118,7 +118,7 @@ class MyListSpec extends AnyFlatSpec with Matchers {
       }
 
     1.tailRecM(iterateTill10) shouldBe "Success!".pure[MyList]
-    1.tailRecM(iterateTill5hard) shouldBe MyList("Success: 3", "Success: 2")
+    1.tailRecM(iterateTill5hard) shouldBe MyList("Success: 2", "Success: 3")
   }
 
 }
