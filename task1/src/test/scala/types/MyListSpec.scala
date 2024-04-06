@@ -3,7 +3,7 @@ package types
 import cats.Monad
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import cats.implicits.{catsSyntaxApplicativeId, toFlatMapOps}
+import cats.implicits.{catsSyntaxApplicativeId, catsSyntaxFlatMapIdOps, toFlatMapOps}
 
 class MyListSpec extends AnyFlatSpec with Matchers {
   "MyList" should "have Empty implementation" in {
@@ -74,13 +74,7 @@ class MyListSpec extends AnyFlatSpec with Matchers {
     val testIntList: MyList[Int] = 1.pure[MyList].add(2)
 
     testIntList
-      .flatMap(x => (x * 2).pure[MyList].add(x * 3).add(x * 4)) shouldBe MyList.empty
-      .add(2)
-      .add(3)
-      .add(4)
-      .add(4)
-      .add(6)
-      .add(8)
+      .flatMap(x => (x * 2).pure[MyList].add(x * 3).add(x * 4)) shouldBe MyList(8, 6, 4, 4, 3, 2)
   }
 
   it should "be left identity" in {
@@ -108,6 +102,23 @@ class MyListSpec extends AnyFlatSpec with Matchers {
     val testList: MyList[Int]    = 1.pure[MyList].add(2).add(3)
 
     testList.flatMap(f).flatMap(g) shouldBe testList.flatMap(x => f(x).flatMap(g))
+  }
+
+  it should "tailRecM should perform function" in {
+    def iterateTill10(value: Int): MyList[Either[Int, String]] =
+      value match {
+        case 10 => Right("Success!").pure[MyList]
+        case _ => Left(value + 1).pure[MyList]
+      }
+
+    def iterateTill5hard(value: Int): MyList[Either[Int, String]] =
+      value match {
+        case value if value >= 2 => Right("Success: " + value.toString).pure[MyList]
+        case _ => MyList(Left(value + 1), Left(value + 2))
+      }
+
+    1.tailRecM(iterateTill10) shouldBe "Success!".pure[MyList]
+    1.tailRecM(iterateTill5hard) shouldBe MyList("Success: 3", "Success: 2")
   }
 
 }
