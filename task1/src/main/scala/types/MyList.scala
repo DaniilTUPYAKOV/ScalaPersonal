@@ -76,17 +76,20 @@ object MyList {
         @tailrec
         def loop(remaining: MyList[MyList[Either[A, B]]], acc: MyList[B]): MyList[B] =
           remaining match {
-            case MyNil => acc
-            case MyListBody(head, tail) =>
-              head match {
-                case MyNil => loop(tail, acc)
-                case MyListBody(inHead, inTail) =>
-                  inHead match {
-                    case Left(value) =>
-                      loop(concat(pure(concat(f(value), inTail)), tail), acc)
-                    case Right(value) =>
-                      loop(concat(pure(inTail), tail), acc.add(value))
-                  }
+            case MyNil                   => acc
+            case MyListBody(MyNil, tail) => loop(tail, acc)
+            case MyListBody(MyListBody(inHead, inTail), tail) =>
+              inHead match {
+                case Left(value) =>
+                  loop(
+                    concat(pure(concat(f(value), inTail)), tail),
+                    acc
+                  )
+                case Right(value) =>
+                  loop(
+                    concat(pure(inTail), tail),
+                    acc.add(value)
+                  )
               }
           }
 
