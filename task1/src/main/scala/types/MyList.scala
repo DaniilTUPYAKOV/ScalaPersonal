@@ -23,6 +23,7 @@ case object MyNil extends MyList[Nothing] {
 }
 
 case class MyListBody[+T](head: T, tail: MyList[T]) extends MyList[T] {
+
   override def add[A >: T](value: A): MyList[A] = MyListBody(value, MyListBody(head, tail))
 
   override def headOption: Option[T] = Some(head)
@@ -54,22 +55,41 @@ object MyList {
 
   def single[A](value: A): MyList[A] = MyListBody(value, MyNil)
 
-  private def concat[A](left: MyList[A], right: MyList[A]): MyList[A] =
-    left match {
-      case MyNil                  => right
-      case MyListBody(head, tail) => MyListBody(head, concat(tail, right))
+  @tailrec
+  private def reverse[A](list: MyList[A], acc: MyList[A]): MyList[A] =
+    list match {
+      case MyNil => acc
+      case MyListBody(head, tail) => reverse(tail, MyListBody(head, acc))
     }
+
+  private def concat[A](left: MyList[A], right: MyList[A]): MyList[A] = {
+
+    @tailrec
+    def loop(list1: MyList[A], acc: MyList[A]): MyList[A] =
+      list1 match {
+        case MyNil => acc
+        case MyListBody(head, tail) => loop(tail, MyListBody(head, acc))
+      }
+
+    loop(reverse(left, MyNil), right)
+  }
 
   implicit val myListMonad: Monad[MyList] =
     new Monad[MyList] {
 
       override def pure[A](x: A): MyList[A] = MyListBody(x, MyNil)
 
-      override def flatMap[A, B](fa: MyList[A])(f: A => MyList[B]): MyList[B] =
-        fa match {
-          case MyNil                  => MyNil
-          case MyListBody(head, tail) => concat(f(head), flatMap(tail)(f))
+      override def flatMap[A, B](fa: MyList[A])(f: A => MyList[B]): MyList[B] = {
+
+        @tailrec
+        def loop(remaining: MyList[A], acc: MyList[B]): MyList[B] = {
+          remaining match {
+            case MyNil => acc
+            case MyListBody(head, tail) => loop(tail, concat(acc, f(head)))
+          }
         }
+        loop(fa, MyNil)
+      }
 
       override def tailRecM[A, B](a: A)(f: A => MyList[Either[A, B]]): MyList[B] = {
 

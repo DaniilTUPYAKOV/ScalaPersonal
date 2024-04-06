@@ -9,7 +9,7 @@ import org.typelevel.discipline.scalatest.FunSuiteDiscipline
 
 class MyListLawSpec extends AnyFunSuite with FunSuiteDiscipline with Checkers {
   checkAll(
-    name = "RecoverWith.MonadLaws",
+    name = "MyList.MonadLaws",
     ruleSet = MonadTests[MyList].monad[Int, Int, String]
   )
 
@@ -19,7 +19,7 @@ class MyListLawSpec extends AnyFunSuite with FunSuiteDiscipline with Checkers {
     Arbitrary(
       Gen.oneOf(
         Gen.const(MyNil),
-        Arbitrary.arbitrary[A].map(MyList.single)
+        Gen.listOf(Arbitrary.arbitrary[A]).map(list => MyList(list: _*))
       )
     )
 }
