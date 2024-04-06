@@ -76,7 +76,7 @@ case class MyListBody[+T](head: T, tail: MyList[T]) extends MyList[T] {
     @tailrec
     def loop(remaining: MyList[T], acc: MyList[T]): MyList[T] = {
       remaining match {
-        case MyNil => acc
+        case MyNil                  => acc
         case MyListBody(head, tail) => loop(tail, MyListBody(head, acc))
       }
     }
