@@ -44,6 +44,32 @@ case class MyListBody[+T](head: T, tail: MyList[T]) extends MyList[T] {
 
     loop(MyListBody(head, tail), position)
   }
+
+  @tailrec
+  private def toList[T](myList: MyList[T], acc: List[T]): List[T] =
+    myList match {
+      case MyNil                  => acc
+      case MyListBody(head, tail) => toList(tail, head :: acc)
+    }
+
+  @tailrec
+  private def compare[T](list1: MyList[T], list2: MyList[T]): Boolean =
+    (list1, list2) match {
+      case (MyListBody(head1, tail1), MyListBody(head2, tail2)) =>
+        (tail1, tail2) match {
+          case (MyNil, MyNil) if head1 == head2                         => true
+          case (t1: MyListBody[T], t2: MyListBody[T]) if head1 == head2 => compare(t1, t2)
+          case _                                                        => false
+        }
+      case _ => false
+    }
+
+  override def equals(obj: Any): Boolean =
+    obj match {
+      case that: MyListBody[T] => compare(MyListBody(head, tail), that)
+      case _                   => false
+    }
+
 }
 
 object MyList {
@@ -58,7 +84,7 @@ object MyList {
   @tailrec
   private def reverse[A](list: MyList[A], acc: MyList[A]): MyList[A] =
     list match {
-      case MyNil => acc
+      case MyNil                  => acc
       case MyListBody(head, tail) => reverse(tail, MyListBody(head, acc))
     }
 
@@ -67,7 +93,7 @@ object MyList {
     @tailrec
     def loop(list1: MyList[A], acc: MyList[A]): MyList[A] =
       list1 match {
-        case MyNil => acc
+        case MyNil                  => acc
         case MyListBody(head, tail) => loop(tail, MyListBody(head, acc))
       }
 
@@ -84,7 +110,7 @@ object MyList {
         @tailrec
         def loop(remaining: MyList[A], acc: MyList[B]): MyList[B] = {
           remaining match {
-            case MyNil => acc
+            case MyNil                  => acc
             case MyListBody(head, tail) => loop(tail, concat(acc, f(head)))
           }
         }
@@ -113,7 +139,7 @@ object MyList {
               }
           }
 
-        loop(pure(f(a)), empty)
+        reverse(loop(pure(f(a)), empty), MyNil)
       }
     }
 }
