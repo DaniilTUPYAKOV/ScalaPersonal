@@ -31,13 +31,13 @@ case class MyListBody[+T](head: T, tail: MyList[T]) extends MyList[T] {
     @tailrec
     def loop(myList: MyList[T], position: Int): Option[T] = {
       position match {
-        case 0                  => myList.headOption
+        case 0 => myList.headOption
         case value if value > 0 =>
           myList match {
-            case MyNil => None
+            case MyNil               => None
             case MyListBody(_, tail) => loop(tail, position - 1)
           }
-        case _                  => None
+        case _ => None
       }
     }
 

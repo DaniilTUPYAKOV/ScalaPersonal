@@ -108,13 +108,13 @@ class MyListSpec extends AnyFlatSpec with Matchers {
     def iterateTill10(value: Int): MyList[Either[Int, String]] =
       value match {
         case 10 => Right("Success!").pure[MyList]
-        case _ => Left(value + 1).pure[MyList]
+        case _  => Left(value + 1).pure[MyList]
       }
 
     def iterateTill5hard(value: Int): MyList[Either[Int, String]] =
       value match {
         case value if value >= 2 => Right("Success: " + value.toString).pure[MyList]
-        case _ => MyList(Left(value + 1), Left(value + 2))
+        case _                   => MyList(Left(value + 1), Left(value + 2))
       }
 
     1.tailRecM(iterateTill10) shouldBe "Success!".pure[MyList]
