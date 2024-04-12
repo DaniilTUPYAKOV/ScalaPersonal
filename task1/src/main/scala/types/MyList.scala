@@ -91,8 +91,6 @@ object MyList {
 
   def empty[A]: MyList[A] = MyNil
 
-  def single[A](value: A): MyList[A] = MyListBody(value, MyNil)
-
   private def concat[A](left: MyList[A], right: MyList[A]): MyList[A] = {
 
     @tailrec
@@ -111,7 +109,6 @@ object MyList {
       override def pure[A](x: A): MyList[A] = MyListBody(x, MyNil)
 
       override def flatMap[A, B](fa: MyList[A])(f: A => MyList[B]): MyList[B] = {
-
         @tailrec
         def loop(remaining: MyList[A], acc: MyList[B]): MyList[B] = {
           remaining match {
@@ -123,28 +120,25 @@ object MyList {
       }
 
       override def tailRecM[A, B](a: A)(f: A => MyList[Either[A, B]]): MyList[B] = {
-
         @tailrec
-        def loop(remaining: MyList[MyList[Either[A, B]]], acc: MyList[B]): MyList[B] =
+        def loop(remaining: MyList[Either[A, B]], acc: MyList[B]): MyList[B] =
           remaining match {
-            case MyNil                   => acc
-            case MyListBody(MyNil, tail) => loop(tail, acc)
-            case MyListBody(MyListBody(inHead, inTail), tail) =>
-              inHead match {
+            case MyNil => acc
+            case MyListBody(head, tail) =>
+              head match {
                 case Left(value) =>
                   loop(
-                    concat(pure(concat(f(value), inTail)), tail),
+                    concat(f(value), tail),
                     acc
                   )
                 case Right(value) =>
                   loop(
-                    concat(pure(inTail), tail),
+                    tail,
                     acc.add(value)
                   )
               }
           }
-
-        loop(pure(f(a)), empty).reverse
+        loop(f(a), empty).reverse
       }
     }
 }
